@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Devkumar Mukhiya Calculator</title>
+<style>
+  :root {
+    --bg: #1c1b19;
+    --panel: #232220;
+    --display-bg: #0f2418;
+    --display-fg: #8fffb0;
+    --display-prev: rgba(143,255,176,0.45);
+    --glow: 0 0 8px rgba(143,255,176,0.35);
+    --key-bg: #3a3835;
+    --key-fg: #f2ede4;
+    --key-op-bg: #a8641f;
+    --key-op-fg: #fff7ec;
+    --key-fn-bg: #4d4b47;
+    --key-fn-fg: #e8e2d6;
+    --accent: #c97a2b;
+    --brand-green: #4ade80;
+    --text-primary: #f2ede4;
+    --text-secondary: #cfc7b8;
+    --text-muted: #a49e92;
+    --label-color: #e0a95c;
+    --border-soft: rgba(255,255,255,0.08);
+    --row-border: rgba(255,255,255,0.06);
+    --input-bg: rgba(0,0,0,0.28);
+    --tab-bg: rgba(0,0,0,0.25);
+    --stripe: rgba(255,255,255,0.03);
+    --tfoot-bg: #1b3327;
+    --card-shadow: 0 20px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.06);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  :root[data-theme="light"] {
+    --bg: #f3efe6;
+    --panel: #ffffff;
+    --display-bg: #e8f7ee;
+    --display-fg: #147a3d;
+    --display-prev: rgba(20,122,61,0.55);
+    --glow: none;
+    --key-bg: #eeece4;
+    --key-fg: #2a2822;
+    --key-op-bg: #d98a3d;
+    --key-op-fg: #fff7ec;
+    --key-fn-bg: #e2ddd0;
+    --key-fn-fg: #2a2822;
+    --accent: #b5651f;
+    --brand-green: #157a3d;
+    --text-primary: #2a2822;
+    --text-secondary: #4c473c;
+    --text-muted: #837c6c;
+    --label-color: #a4611c;
+    --border-soft: rgba(0,0,0,0.1);
+    --row-border: rgba(0,0,0,0.08);
+    --input-bg: rgba(0,0,0,0.035);
+    --tab-bg: rgba(0,0,0,0.06);
+    --stripe: rgba(0,0,0,0.03);
+    --tfoot-bg: #dcf3e4;
+    --card-shadow: 0 16px 40px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    --card-border: rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    transition: background 0.2s ease;
+  }
+  body {
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', ui-monospace, monospace;
+    padding: 24px;
+  }
+  .calc {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    transition: background 0.2s ease;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2px 6px 12px;
+  }
+  .brand {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--brand-green);
+  }
+  .theme-toggle {
+    background: var(--key-fn-bg);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 14px;
+    box-shadow: none;
+  }
+  .theme-toggle:active { transform: none; }
+  .display {
+    background: var(--display-bg);
+    border-radius: 10px;
+    padding: 22px 16px 14px;
+    margin-bottom: 16px;
+    text-align: right;
+    overflow: hidden;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .display .prev {
+    color: var(--display-prev);
+    font-size: 14px;
+    min-height: 18px;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .display .curr {
+    color: var(--display-fg);
+    font-size: 34px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow-x: auto;
+    text-shadow: var(--glow);
+  }
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  button {
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 18px;
+    padding: 16px 0;
+    background: var(--key-bg);
+    color: var(--key-fg);
+    cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: transform 0.05s ease, box-shadow 0.05s ease;
+  }
+  button:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.35);
+  }
+  .fn { background: var(--key-fn-bg); color: var(--key-fn-fg); }
+  .op { background: var(--key-op-bg); color: var(--key-op-fg); }
+  .zero { grid-column: span 2; }
+  .eq {
+    background: var(--accent);
+    color: #fff7ec;
+    font-weight: bold;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin: 0 6px 12px;
+    background: var(--tab-bg);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .tabs button {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    background: transparent;
+    color: var(--text-muted);
+    box-shadow: none;
+    border-radius: 7px;
+  }
+  .tabs button.active {
+    background: var(--key-fn-bg);
+    color: var(--text-primary);
+  }
+  .tabs button:active { transform: none; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .field {
+    margin-bottom: 12px;
+  }
+  .field label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--label-color);
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+  }
+  .field input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 11px 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 16px;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .field-row {
+    display: flex;
+    gap: 10px;
+  }
+  .field-row .field { flex: 1; }
+
+  .result-group {
+    background: var(--display-bg);
+    border-radius: 10px;
+    padding: 6px 16px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 9px 0;
+    font-size: 12.5px;
+    border-top: 1px solid var(--row-border);
+  }
+  .result-row:first-child { border-top: none; }
+  .result-row .lbl {
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+  }
+  .result-row .val {
+    color: var(--display-fg);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .result-row.total .lbl {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  .result-row.total .val {
+    color: var(--accent);
+    font-size: 15.5px;
+    text-shadow: 0 0 6px rgba(201,122,43,0.45);
+  }
+
+  .loan-output { display: none; }
+  .loan-output.show { display: block; }
+
+  .loan-actions {
+    display: flex;
+    gap: 10px;
+    margin: 4px 0 14px;
+  }
+  .loan-actions button {
+    flex: 1;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    padding: 13px 0;
+  }
+  .btn-calculate {
+    background: var(--accent);
+    color: #fff7ec;
+    font-weight: bold;
+  }
+  .btn-clear {
+    background: var(--key-fn-bg);
+    color: var(--key-fn-fg);
+  }
+
+  .schedule-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--label-color);
+    margin: 16px 6px 8px;
+  }
+  .schedule-wrap {
+    max-height: 260px;
+    overflow: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+  }
+  table.schedule {
+    width: 100%;
+    min-width: 440px;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  table.schedule thead th {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, var(--key-op-bg), var(--accent));
+    color: var(--key-op-fg);
+    padding: 9px 7px;
+    text-align: right;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  table.schedule thead th:first-child { text-align: center; }
+  table.schedule tbody td {
+    padding: 7px 7px;
+    text-align: right;
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-top: 1px solid var(--row-border);
+    white-space: nowrap;
+  }
+  table.schedule tbody td:first-child {
+    text-align: center;
+    color: var(--text-muted);
+  }
+  table.schedule tbody tr:nth-child(even) { background: var(--stripe); }
+  table.schedule tbody td.balance { color: var(--display-fg); font-weight: 600; }
+  table.schedule tbody tr:last-child td { color: var(--accent); font-weight: 600; }
+  table.schedule tfoot td {
+    position: sticky;
+    bottom: 0;
+    padding: 9px 7px;
+    text-align: right;
+    background: var(--tfoot-bg);
+    color: var(--display-fg);
+    font-weight: 700;
+    border-top: 2px solid rgba(201,122,43,0.6);
+    white-space: nowrap;
+  }
+  table.schedule tfoot td:first-child { text-align: center; color: var(--text-muted); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="calc">
+    <div class="topbar">
+      <div class="brand">DEVKUMAR MUKHIYA CALCULATOR</div>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+    </div>
+
+    <div class="tabs">
+      <button id="tab-calc" class="active" data-tab="calc">CALCULATOR</button>
+      <button id="tab-loan" data-tab="loan">LOAN</button>
+    </div>
+
+    <div id="panel-calc" class="panel active">
+      <div class="display">
+        <div class="prev" id="prev">&nbsp;</div>
+        <div class="curr" id="curr">0</div>
+      </div>
+      <div class="keys">
+        <button class="fn" data-action="clear">AC</button>
+        <button class="fn" data-action="sign">±</button>
+        <button class="fn" data-action="percent">%</button>
+        <button class="op" data-action="divide">÷</button>
+
+        <button data-num="7">7</button>
+        <button data-num="8">8</button>
+        <button data-num="9">9</button>
+        <button class="op" data-action="multiply">×</button>
+
+        <button data-num="4">4</button>
+        <button data-num="5">5</button>
+        <button data-num="6">6</button>
+        <button class="op" data-action="subtract">−</button>
+
+        <button data-num="1">1</button>
+        <button data-num="2">2</button>
+        <button data-num="3">3</button>
+        <button class="op" data-action="add">+</button>
+
+        <button class="zero" data-num="0">0</button>
+        <button data-action="decimal">.</button>
+        <button class="eq" data-action="equals">=</button>
+      </div>
+    </div>
+
+    <div id="panel-loan" class="panel">
+      <div class="field">
+        <label for="loan-amount">Loan amount (Rs.)</label>
+        <input type="number" id="loan-amount" inputmode="decimal" placeholder="10,00,000" min="0">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="loan-rate">Interest rate (% / year)</label>
+          <input type="number" id="loan-rate" inputmode="decimal" placeholder="10" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label for="loan-duration">Loan duration (months)</label>
+          <input type="number" id="loan-duration" inputmode="decimal" placeholder="60" min="0" step="1">
+        </div>
+      </div>
+
+      <div class="loan-actions">
+        <button class="btn-calculate" id="loan-calculate">CALCULATE</button>
+        <button class="btn-clear" id="loan-clear">CLEAR</button>
+      </div>
+
+      <div class="loan-output" id="loan-output">
+        <div class="result-group">
+          <div class="result-row"><span class="lbl">Total loan amount</span><span class="val" id="r-total-amount">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl">Service charge (1%)</span><span class="val" id="r-service">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl">Insurance charge</span><span class="val" id="r-insurance">Rs. 0</span></div>
+          <div class="result-row total"><span class="lbl">Total charge</span><span class="val" id="r-total-charge">Rs. 0</span></div>
+        </div>
+
+        <div class="result-group">
+          <div class="result-row"><span class="lbl">Monthly principal</span><span class="val" id="r-monthly-principal">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl">Monthly interest (1st mo.)</span><span class="val" id="r-monthly-interest">Rs. 0</span></div>
+          <div class="result-row total"><span class="lbl">Monthly installment (1st mo.)</span><span class="val" id="r-monthly-installment">Rs. 0</span></div>
+        </div>
+
+        <div class="result-group">
+          <div class="result-row"><span class="lbl">Total disbursement</span><span class="val" id="r-disbursement">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl">Total interest</span><span class="val" id="r-total-interest">Rs. 0</span></div>
+          <div class="result-row total"><span class="lbl">Total payment</span><span class="val" id="r-total-payment">Rs. 0</span></div>
+        </div>
+
+        <div class="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
+        <div class="schedule-wrap">
+          <table class="schedule">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Installment</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+            <tfoot id="schedule-foot"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  let curr = "0";
+  let prev = "";
+  let op = null;
+  let overwrite = true;
+  let justSetOp = false;
+
+  const currEl = document.getElementById("curr");
+  const prevEl = document.getElementById("prev");
+
+  const opSymbol = { add: "+", subtract: "−", multiply: "×", divide: "÷" };
+
+  function render() {
+    currEl.textContent = justSetOp ? "0" : curr;
+    prevEl.textContent = prev ? `${prev} ${opSymbol[op] || ""}` : "\u00A0";
+  }
+
+  function inputNum(d) {
+    justSetOp = false;
+    if (overwrite) {
+      curr = d === "." ? "0." : d;
+      overwrite = false;
+      return;
+    }
+    if (d === "." && curr.includes(".")) return;
+    if (curr === "0" && d !== ".") curr = d;
+    else curr += d;
+  }
+
+  function compute(a, b, operator) {
+    a = parseFloat(a);
+    b = parseFloat(b);
+    switch (operator) {
+      case "add": return a + b;
+      case "subtract": return a - b;
+      case "multiply": return a * b;
+      case "divide": return b === 0 ? NaN : a / b;
+      default: return b;
+    }
+  }
+
+  function formatResult(n) {
+    if (Number.isNaN(n)) return "Error";
+    let s = String(Math.round(n * 1e10) / 1e10);
+    if (s.length > 14) s = n.toExponential(6);
+    return s;
+  }
+
+  function handleOp(action) {
+    if (op && !overwrite) {
+      const result = compute(prev, curr, op);
+      curr = formatResult(result);
+    }
+    prev = curr;
+    op = action;
+    overwrite = true;
+    justSetOp = true;
+  }
+
+  function handleEquals() {
+    if (op == null) return;
+    const result = compute(prev, curr, op);
+    curr = formatResult(result);
+    prev = "";
+    op = null;
+    overwrite = true;
+    justSetOp = false;
+  }
+
+  function handleClear() {
+    curr = "0";
+    prev = "";
+    op = null;
+    overwrite = true;
+    justSetOp = false;
+  }
+
+  function handleSign() {
+    if (curr === "0") return;
+    curr = curr.startsWith("-") ? curr.slice(1) : "-" + curr;
+  }
+
+  function handlePercent() {
+    curr = formatResult(parseFloat(curr) / 100);
+  }
+
+  document.querySelectorAll("button[data-num]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      inputNum(btn.dataset.num);
+      render();
+    });
+  });
+
+  document.querySelectorAll("button[data-action]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const a = btn.dataset.action;
+      if (a === "clear") handleClear();
+      else if (a === "sign") handleSign();
+      else if (a === "percent") handlePercent();
+      else if (a === "decimal") inputNum(".");
+      else if (a === "equals") handleEquals();
+      else handleOp(a);
+      render();
+    });
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key >= "0" && e.key <= "9") inputNum(e.key);
+    else if (e.key === ".") inputNum(".");
+    else if (e.key === "+") handleOp("add");
+    else if (e.key === "-") handleOp("subtract");
+    else if (e.key === "*") handleOp("multiply");
+    else if (e.key === "/") handleOp("divide");
+    else if (e.key === "Enter" || e.key === "=") handleEquals();
+    else if (e.key === "Escape") handleClear();
+    else return;
+    render();
+  });
+
+  render();
+
+  // ---- Tabs ----
+  const tabCalc = document.getElementById("tab-calc");
+  const tabLoan = document.getElementById("tab-loan");
+  const panelCalc = document.getElementById("panel-calc");
+  const panelLoan = document.getElementById("panel-loan");
+
+  function showTab(name) {
+    const isCalc = name === "calc";
+    tabCalc.classList.toggle("active", isCalc);
+    tabLoan.classList.toggle("active", !isCalc);
+    panelCalc.classList.toggle("active", isCalc);
+    panelLoan.classList.toggle("active", !isCalc);
+  }
+  tabCalc.addEventListener("click", () => showTab("calc"));
+  tabLoan.addEventListener("click", () => showTab("loan"));
+
+  // ---- Loan calculator (declining balance, with charges + schedule) ----
+  const loanAmountEl = document.getElementById("loan-amount");
+  const loanRateEl = document.getElementById("loan-rate");
+  const loanDurationEl = document.getElementById("loan-duration");
+  const scheduleBody = document.getElementById("schedule-body");
+  const scheduleFoot = document.getElementById("schedule-foot");
+  const loanOutput = document.getElementById("loan-output");
+
+  const out = {
+    totalAmount: document.getElementById("r-total-amount"),
+    service: document.getElementById("r-service"),
+    insurance: document.getElementById("r-insurance"),
+    totalCharge: document.getElementById("r-total-charge"),
+    monthlyPrincipal: document.getElementById("r-monthly-principal"),
+    monthlyInterest: document.getElementById("r-monthly-interest"),
+    monthlyInstallment: document.getElementById("r-monthly-installment"),
+    disbursement: document.getElementById("r-disbursement"),
+    totalInterest: document.getElementById("r-total-interest"),
+    totalPayment: document.getElementById("r-total-payment"),
+  };
+
+  function formatRs(n) {
+    if (!isFinite(n)) return "Rs. 0";
+    return "Rs. " + Math.round(n).toLocaleString("en-IN");
+  }
+
+  function calcLoan() {
+    const P = parseFloat(loanAmountEl.value) || 0;
+    const annualRate = parseFloat(loanRateEl.value) || 0;
+    const months = Math.max(0, Math.round(parseFloat(loanDurationEl.value) || 0));
+
+    // Charges: 1% service charge, insurance at Rs. 5.20 per Rs. 1000 of loan amount
+    const service = P * 0.01;
+    const insurance = (P / 1000) * 5.20;
+    const totalCharge = service + insurance;
+    const disbursement = P - totalCharge;
+
+    const monthlyPrincipal = months > 0 ? Math.floor(P / months) : 0;
+
+    // Declining balance: interest is calculated on the remaining balance
+    // each month, so it decreases as the loan is paid down.
+    const rows = [];
+    let balance = P;
+    let totalInterest = 0;
+
+    for (let m = 1; m <= months; m++) {
+      const isLast = m === months;
+      const interestPortion = balance * (annualRate / 100) / 12;
+      const principalPortion = isLast ? balance : monthlyPrincipal;
+      const installment = principalPortion + interestPortion;
+      balance = Math.max(balance - principalPortion, 0);
+      totalInterest += interestPortion;
+      rows.push({ m, principalPortion, interestPortion, installment, balance });
+    }
+
+    const totalPayment = P + totalInterest;
+    const firstMonthInterest = rows.length ? rows[0].interestPortion : 0;
+    const firstMonthInstallment = rows.length ? rows[0].installment : 0;
+
+    out.totalAmount.textContent = formatRs(P);
+    out.service.textContent = formatRs(service);
+    out.insurance.textContent = formatRs(insurance);
+    out.totalCharge.textContent = formatRs(totalCharge);
+    out.monthlyPrincipal.textContent = formatRs(monthlyPrincipal);
+    out.monthlyInterest.textContent = formatRs(firstMonthInterest);
+    out.monthlyInstallment.textContent = formatRs(firstMonthInstallment);
+    out.disbursement.textContent = formatRs(Math.max(disbursement, 0));
+    out.totalInterest.textContent = formatRs(totalInterest);
+    out.totalPayment.textContent = formatRs(totalPayment);
+
+    buildSchedule(rows);
+    loanOutput.classList.add("show");
+  }
+
+  function buildSchedule(rows) {
+    scheduleBody.innerHTML = "";
+    scheduleFoot.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    let sumPrincipal = 0, sumInterest = 0, sumInstallment = 0;
+
+    rows.forEach((row) => {
+      sumPrincipal += row.principalPortion;
+      sumInterest += row.interestPortion;
+      sumInstallment += row.installment;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.m}</td>
+        <td>${formatRs(row.principalPortion)}</td>
+        <td>${formatRs(row.interestPortion)}</td>
+        <td>${formatRs(row.installment)}</td>
+        <td class="balance">${formatRs(row.balance)}</td>
+      `;
+      frag.appendChild(tr);
+    });
+    scheduleBody.appendChild(frag);
+
+    if (rows.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>Total</td>
+        <td>${formatRs(sumPrincipal)}</td>
+        <td>${formatRs(sumInterest)}</td>
+        <td>${formatRs(sumInstallment)}</td>
+        <td>Rs. 0</td>
+      `;
+      scheduleFoot.appendChild(tr);
+    }
+  }
+
+  function clearLoan() {
+    loanAmountEl.value = "";
+    loanRateEl.value = "";
+    loanDurationEl.value = "";
+    Object.values(out).forEach((el) => { el.textContent = "Rs. 0"; });
+    scheduleBody.innerHTML = "";
+    scheduleFoot.innerHTML = "";
+    loanOutput.classList.remove("show");
+  }
+
+  document.getElementById("loan-calculate").addEventListener("click", calcLoan);
+  document.getElementById("loan-clear").addEventListener("click", clearLoan);
+  clearLoan();
+
+  // ---- Theme toggle (dark default, light optional) ----
+  const themeToggle = document.getElementById("theme-toggle");
+  const root = document.documentElement;
+
+  function applyTheme(theme) {
+    if (theme === "light") {
+      root.setAttribute("data-theme", "light");
+      themeToggle.textContent = "☀️";
+    } else {
+      root.removeAttribute("data-theme");
+      themeToggle.textContent = "🌙";
+    }
+  }
+
+  let savedTheme = "dark";
+  try {
+    savedTheme = localStorage.getItem("dm-calc-theme") || "dark";
+  } catch (e) {
+    savedTheme = "dark";
+  }
+  applyTheme(savedTheme);
+
+  themeToggle.addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+    applyTheme(next);
+    try {
+      localStorage.setItem("dm-calc-theme", next);
+    } catch (e) {
+      /* storage unavailable, ignore */
+    }
+  });
+})();
+</script>
+</body>
+</html>
