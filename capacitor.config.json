@@ -1,5 +1,12 @@
 {
   "appId": "com.devkumar.calculator",
   "appName": "Devkumar Mukhiya Calculator",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DARK",
+      "backgroundColor": "#1c1b19"
+    }
+  }
 }
