@@ -547,7 +547,7 @@
       <div class="loan-output" id="loan-output">
         <div class="result-group">
           <div class="result-row"><span class="lbl">Total loan amount</span><span class="val" id="r-total-amount">Rs. 0</span></div>
-          <div class="result-row"><span class="lbl">Service charge (1%)</span><span class="val" id="r-service">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl" id="lbl-service">Service charge (1%)</span><span class="val" id="r-service">Rs. 0</span></div>
           <div class="result-row"><span class="lbl">Insurance charge</span><span class="val" id="r-insurance">Rs. 0</span></div>
           <div class="result-row total"><span class="lbl">Total charge</span><span class="val" id="r-total-charge">Rs. 0</span></div>
         </div>
@@ -587,6 +587,16 @@
       <div class="field">
         <label for="set-rate">SET INTEREST RATE (% / year)</label>
         <input type="number" id="set-rate" inputmode="decimal" placeholder="e.g. 12" min="0" step="0.01">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="set-service">SERVICE CHARGE (%)</label>
+          <input type="number" id="set-service" inputmode="decimal" placeholder="1" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label for="set-insurance">INSURANCE (Rs. per 1000 / 12 mo)</label>
+          <input type="number" id="set-insurance" inputmode="decimal" placeholder="5.20" min="0" step="0.01">
+        </div>
       </div>
       <div class="loan-actions">
         <button class="btn-calculate" id="rate-save">SAVE</button>
@@ -1035,13 +1045,14 @@
     const P = Math.round(parseFloat(loanAmountEl.value) || 0);
     const typedRate = parseFloat(loanRateEl.value);
     // A rate typed in the loan calculator wins; otherwise use the rate saved in Settings.
+    window.dmServiceRate = window.dmServiceRate ?? 1; window.dmInsuranceRate = window.dmInsuranceRate ?? 5.20;
     const annualRate = (loanRateEl.value.trim() !== "" && !isNaN(typedRate)) ? typedRate : (window.dmDefaultRate || 0);
     const months = Math.max(0, Math.round(parseFloat(loanDurationEl.value) || 0));
 
-    // Charges: 1% service charge, insurance at Rs. 5.20 per Rs. 1000 of loan amount per 12 months
+    // Charges: service charge % and insurance per Rs. 1000 per 12 months are set in Settings (defaults 1% and Rs. 5.20)
     // (e.g. Rs. 5.20/1000 for a 12-month loan, Rs. 10.40/1000 for 24 months, and so on).
-    const service = Math.round(P * 0.01);
-    const insurance = Math.round((P / 1000) * 5.20 * (months / 12));
+    const service = Math.round(P * (window.dmServiceRate / 100));
+    const insurance = Math.round((P / 1000) * window.dmInsuranceRate * (months / 12));
     const totalCharge = service + insurance;
     const disbursement = P - totalCharge;
 
@@ -1167,19 +1178,36 @@
   document.getElementById("menu-btn").addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("open"); });
   document.addEventListener("click", () => menu.classList.remove("open"));
   document.getElementById("menu-clear").addEventListener("click", () => document.getElementById("history-clear").click());
-  const rateIn = document.getElementById("set-rate"), rateNote = document.getElementById("rate-note"), loanRate = document.getElementById("loan-rate");
-  function applyRate(r, persist) {
-    window.dmDefaultRate = r || 0;
-    rateIn.value = r ? r : "";
-    loanRate.placeholder = r ? String(r) : "10";
-    rateNote.textContent = r ? "Saved: " + r + "% per year. Used in the Loan calculator when its interest rate is left empty. A rate typed there is used instead." : "No default rate saved.";
-    if (persist) { try { localStorage.setItem("dm-calc-rate", String(r || "")); } catch (e) {} }
+  const rateIn = document.getElementById("set-rate"), svcIn = document.getElementById("set-service"), insIn = document.getElementById("set-insurance");
+  const rateNote = document.getElementById("rate-note"), loanRate = document.getElementById("loan-rate"), lblService = document.getElementById("lbl-service");
+  const DEF_SERVICE = 1, DEF_INSURANCE = 5.20, KEY = "dm-calc-settings";
+  function num(v, d) { const n = parseFloat(v); return isFinite(n) && n >= 0 ? n : d; }
+  function applySettings(cfg, persist) {
+    window.dmDefaultRate = cfg.rate || 0;
+    window.dmServiceRate = cfg.service;
+    window.dmInsuranceRate = cfg.insurance;
+    rateIn.value = cfg.rate ? cfg.rate : "";
+    svcIn.value = cfg.service !== DEF_SERVICE ? cfg.service : "";
+    insIn.value = cfg.insurance !== DEF_INSURANCE ? cfg.insurance : "";
+    loanRate.placeholder = cfg.rate ? String(cfg.rate) : "10";
+    lblService.textContent = "Service charge (" + cfg.service + "%)";
+    rateNote.textContent = "Interest rate: " + (cfg.rate ? cfg.rate + "% per year (used when the Loan rate field is empty)" : "not set") +
+      ". Service charge: " + cfg.service + "%. Insurance: Rs. " + cfg.insurance + " per Rs. 1000 per 12 months. Leave a box empty to use the default.";
+    if (persist) { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
   }
-  let savedRate = 0;
-  try { savedRate = parseFloat(localStorage.getItem("dm-calc-rate")) || 0; } catch (e) {}
-  applyRate(savedRate, false);
-  document.getElementById("rate-save").addEventListener("click", () => applyRate(parseFloat(rateIn.value) || 0, true));
-  document.getElementById("rate-reset").addEventListener("click", () => applyRate(0, true));
+  let saved = { rate: 0, service: DEF_SERVICE, insurance: DEF_INSURANCE };
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (raw) saved = { rate: num(raw.rate, 0), service: num(raw.service, DEF_SERVICE), insurance: num(raw.insurance, DEF_INSURANCE) };
+    else { const old = parseFloat(localStorage.getItem("dm-calc-rate")); if (isFinite(old)) saved.rate = old; }
+  } catch (e) {}
+  applySettings(saved, false);
+  document.getElementById("rate-save").addEventListener("click", () => applySettings({
+    rate: num(rateIn.value, 0),
+    service: svcIn.value.trim() === "" ? DEF_SERVICE : num(svcIn.value, DEF_SERVICE),
+    insurance: insIn.value.trim() === "" ? DEF_INSURANCE : num(insIn.value, DEF_INSURANCE)
+  }, true));
+  document.getElementById("rate-reset").addEventListener("click", () => applySettings({ rate: 0, service: DEF_SERVICE, insurance: DEF_INSURANCE }, true));
   document.getElementById("tab-history").addEventListener("click", (e) => {
     if (document.querySelector(".calc").classList.contains("in-extra")) { e.stopImmediatePropagation(); document.getElementById("tab-calc").click(); }
   }, true);
