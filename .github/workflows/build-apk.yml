@@ -41,6 +41,11 @@ jobs:
       - name: Add native print and save helper
         run: cp native/MainActivity.java "$(find android/app/src/main/java -name MainActivity.java | head -1)"
 
+      - name: Make launcher icons from native/icon-source.png
+        run: |
+          python3 -c "import PIL" 2>/dev/null || python3 -m pip install --break-system-packages pillow
+          python3 native/make_icons.py native/icon-source.png android/app/src/main/res
+
       - name: Sync web files
         run: npx cap sync android
 
