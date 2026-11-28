@@ -766,7 +766,7 @@
   }
 
   function toEvalString(str) {
-    let s = str;
+    let s = str.replace(/(^|[^\d.])\.(\d)/g, "$10.$2"); // .52 -> 0.52
     s = preprocessPostfix(s, "!", "fact");
     s = preprocessPostfix(s, "\u00B2", "sq");
     s = preprocessPostfix(s, "%", "pct");
@@ -967,7 +967,8 @@
     const l = expr.slice(0, caret).match(/[\d.]*$/)[0];
     const r = expr.slice(caret).match(/^[\d.]*/)[0];
     if ((l + r).includes(".")) return;
-    ins(".");
+    const prev = expr[caret - 1];
+    ins(!prev || /[+\-\u2212\u00d7\u00f7^(]/.test(prev) ? "0." : ".");
   }
 
   function inputOperator(sym) {
