@@ -488,6 +488,13 @@
   html.snap-loan .topbar{scroll-snap-align:start;scroll-margin-top:12px}
   html.snap-loan #schedule-wrap-a{scroll-snap-align:end;scroll-margin-bottom:8px}
   html.snap-loan .schedule-section{scroll-snap-align:start}
+  table.schedule{min-width:0;width:100%;table-layout:fixed;font-size:12px}
+  table.schedule thead th,table.schedule tbody td,table.schedule tfoot td{padding-left:3px;padding-right:6px}
+  table.schedule thead th:nth-child(1){width:15%}
+  table.schedule thead th:nth-child(2){width:21%}
+  table.schedule thead th:nth-child(3){width:20%}
+  table.schedule thead th:nth-child(4){width:23%}
+  table.schedule thead th:nth-child(5){width:21%}
 </style>
 </head>
 <body>
@@ -607,12 +614,12 @@
           <button class="btn-clear" id="sched-print">🖨️ PRINT</button>
           <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
         </div>
-        <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
+        <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE (Rs.) · interest declines monthly</div>
         <div class="schedule-wrap" id="schedule-wrap-a">
           <table class="schedule">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Month</th>
                 <th>Principal</th>
                 <th>Interest</th>
                 <th>Installment</th>
@@ -630,12 +637,12 @@
             <button class="btn-clear" id="sched-print2">🖨️ PRINT</button>
             <button class="btn-calculate" id="sched-pdf2">⬇ SAVE PDF</button>
           </div>
-          <div class="schedule-title" id="schedule-title2">PAYMENT SCHEDULE · interest declines monthly</div>
+          <div class="schedule-title" id="schedule-title2">PAYMENT SCHEDULE (Rs.) · interest declines monthly</div>
           <div class="schedule-wrap">
             <table class="schedule">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>Month</th>
                   <th>Principal</th>
                   <th>Interest</th>
                   <th>Installment</th>
@@ -1257,8 +1264,8 @@
       }
     }
     document.getElementById("schedule-title").textContent = emiOn
-      ? "PAYMENT SCHEDULE · EMI (fixed monthly installment)"
-      : "PAYMENT SCHEDULE · interest declines monthly";
+      ? "PAYMENT SCHEDULE (Rs.) · EMI (fixed monthly installment)"
+      : "PAYMENT SCHEDULE (Rs.) · interest declines monthly";
     window.dmSchedule = { rows: schedRows, P, rate: annualRate, months, emiOn, emi };
     document.getElementById("std-group").style.display = "";
     document.getElementById("emi-group").style.display = "none";
@@ -1277,8 +1284,10 @@
     setTimeout(fixSpacer, 60);
   }
 
+  const fmt0 = (n) => isFinite(n) ? Math.round(n).toLocaleString("en-IN") : "0";
+  const fmt2 = (n) => isFinite(n) ? n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
   function buildSchedule(rows, emiOn) {
-    const fInst = emiOn ? formatRs2 : formatRs;
+    const fInst = emiOn ? fmt2 : fmt0;
     scheduleBody.innerHTML = "";
     scheduleFoot.innerHTML = "";
     const frag = document.createDocumentFragment();
@@ -1292,10 +1301,10 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${row.m}</td>
-        <td>${formatRs(row.principalPortion)}</td>
-        <td>${formatRs(row.interestPortion)}</td>
+        <td>${fmt0(row.principalPortion)}</td>
+        <td>${fmt0(row.interestPortion)}</td>
         <td>${fInst(row.installment)}</td>
-        <td class="balance">${formatRs(row.balance)}</td>
+        <td class="balance">${fmt0(row.balance)}</td>
       `;
       frag.appendChild(tr);
     });
@@ -1305,10 +1314,10 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>Total</td>
-        <td>${formatRs(sumPrincipal)}</td>
-        <td>${formatRs(sumInterest)}</td>
+        <td>${fmt0(sumPrincipal)}</td>
+        <td>${fmt0(sumInterest)}</td>
         <td>${fInst(sumInstallment)}</td>
-        <td>Rs. 0</td>
+        <td>0</td>
       `;
       scheduleFoot.appendChild(tr);
     }
@@ -1474,7 +1483,7 @@
     const d = getSched(); if (!d) return;
     const t = totals(d);
     const body = d.rows.map((r) => "<tr><td>" + r.m + "</td><td>" + n0(r.principalPortion) + "</td><td>" + n0(r.interestPortion) + "</td><td>" + (d.emiOn ? n2 : n0)(r.installment) + "</td><td>" + n0(r.balance) + "</td></tr>").join("");
-    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Repayment Schedule</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#000}.hd{display:flex;justify-content:space-between;font-size:12px;border-bottom:2px solid #2a9d8f;padding-bottom:6px;margin-bottom:14px}h2{margin:0 0 4px}p{margin:0 0 14px;font-size:13px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:5px 8px;text-align:right}th:first-child,td:first-child{text-align:center}th{background:#e6e6e6}tfoot td{font-weight:bold;background:#f2f2f2}</style></head><body><div class="hd"><b>' + esc(APP_NAME) + '</b><span>Saved: ' + esc(stamp()) + '</span></div><h2>Repayment Schedule' + (d.emiOn ? " (EMI)" : "") + "</h2><p>" + esc(infoLine(d)) + "</p><table><thead><tr><th>#</th><th>Principal (Rs.)</th><th>Interest (Rs.)</th><th>Installment (Rs.)</th><th>Balance (Rs.)</th></tr></thead><tbody>" + body + "</tbody><tfoot><tr><td>Total</td><td>" + n0(t.p) + "</td><td>" + n0(t.i) + "</td><td>" + (d.emiOn ? n2 : n0)(t.m) + "</td><td>0</td></tr></tfoot></table></body></html>";
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Repayment Schedule</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#000}.hd{display:flex;justify-content:space-between;font-size:12px;border-bottom:2px solid #2a9d8f;padding-bottom:6px;margin-bottom:14px}h2{margin:0 0 4px}p{margin:0 0 14px;font-size:13px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:5px 8px;text-align:right}th:first-child,td:first-child{text-align:center}th{background:#e6e6e6}tfoot td{font-weight:bold;background:#f2f2f2}</style></head><body><div class="hd"><b>' + esc(APP_NAME) + '</b><span>Saved: ' + esc(stamp()) + '</span></div><h2>Repayment Schedule' + (d.emiOn ? " (EMI)" : "") + "</h2><p>" + esc(infoLine(d)) + "</p><table><thead><tr><th>Month</th><th>Principal (Rs.)</th><th>Interest (Rs.)</th><th>Installment (Rs.)</th><th>Balance (Rs.)</th></tr></thead><tbody>" + body + "</tbody><tfoot><tr><td>Total</td><td>" + n0(t.p) + "</td><td>" + n0(t.i) + "</td><td>" + (d.emiOn ? n2 : n0)(t.m) + "</td><td>0</td></tr></tfoot></table></body></html>";
     if (window.AndroidPrint && window.AndroidPrint.print) { try { window.AndroidPrint.print(html); return; } catch (e) {} }
     const f = document.createElement("iframe");
     f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
@@ -1503,7 +1512,7 @@
     const W = 595, H = 842, MX = 40, RH = 22, HH = 26, BOT = 52;
     const DARK = "0.10 0.20 0.22", GREY = "0.40 0.45 0.47", TEAL = "0.17 0.62 0.56", LINE = "0.78 0.82 0.83";
     const t = totals(d), saved = stamp();
-    const cols = [{ w: 45, h: "#" }, { w: 110, h: "Principal (Rs.)" }, { w: 110, h: "Interest (Rs.)" }, { w: 130, h: "Installment (Rs.)" }, { w: 120, h: "Balance (Rs.)" }];
+    const cols = [{ w: 55, h: "Month" }, { w: 105, h: "Principal (Rs.)" }, { w: 105, h: "Interest (Rs.)" }, { w: 130, h: "Installment (Rs.)" }, { w: 120, h: "Balance (Rs.)" }];
     const TW = cols.reduce((a, c) => a + c.w, 0);
     const items = d.rows.map((r) => [String(r.m), n0(r.principalPortion), n0(r.interestPortion), (d.emiOn ? n2 : n0)(r.installment), n0(r.balance)]);
     items.push(["Total", n0(t.p), n0(t.i), (d.emiOn ? n2 : n0)(t.m), "0"]);
