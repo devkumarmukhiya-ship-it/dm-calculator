@@ -473,6 +473,18 @@
   .keys{grid-auto-rows:1fr}
   .keys.show-sci > button{aspect-ratio:auto;height:auto;min-height:0;font-size:22px;border-radius:22px}
   .keys.show-sci > .sci-key{font-size:17px}
+  .tools .arrows{margin-left:auto;display:flex;gap:4px}
+  .caret{display:inline-block;width:2px;height:.95em;background:var(--accent);vertical-align:-0.1em;margin:0 1px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .display{cursor:text}
+  /* schedule = its own full-screen page: scroll up -> top options hide, scroll down -> back */
+  .schedule-section{height:100dvh;min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding:14px 0 12px}
+  .schedule-section .schedule-title{margin:2px 6px 8px}
+  .schedule-section .schedule-wrap{flex:1;min-height:0;max-height:none}
+  html.snap-loan{scroll-snap-type:y mandatory}
+  html.snap-loan .topbar{scroll-snap-align:start}
+  html.snap-loan #snap-a-end{scroll-snap-align:end}
+  html.snap-loan .schedule-section{scroll-snap-align:start}
 </style>
 </head>
 <body>
@@ -499,7 +511,7 @@
         <div class="curr" id="curr">0</div>
         <div class="preview" id="preview">&nbsp;</div>
       </div>
-      <div class="tools"><button id="sci-toggle" class="icon-btn" aria-label="Show or hide scientific keys"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5"/><path d="M7 15l5 5 5-5"/></svg></button></div>
+      <div class="tools"><button id="sci-toggle" class="icon-btn" aria-label="Show or hide scientific keys"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9l5-5 5 5"/><path d="M7 15l5 5 5-5"/></svg></button><span class="arrows"><button id="caret-left" class="icon-btn" aria-label="Move cursor left"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button id="caret-right" class="icon-btn" aria-label="Move cursor right"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></span></div>
       <div class="keys" id="keys">
         <button class="fn sci-key" id="btn-sqrt" data-action="sqrt">√</button>
         <button class="fn sci-key" data-action="pi">π</button>
@@ -573,40 +585,42 @@
         </div>
 
         <div class="result-group" id="std-group">
-          <div class="result-row"><span class="lbl">Monthly principal</span><span class="val" id="r-monthly-principal">Rs. 0</span></div>
+          <div class="result-row"><span class="lbl" id="lbl-mp">Monthly principal</span><span class="val" id="r-monthly-principal">Rs. 0</span></div>
           <div class="result-row"><span class="lbl">Monthly interest (1st mo.)</span><span class="val" id="r-monthly-interest">Rs. 0</span></div>
-          <div class="result-row total"><span class="lbl">Monthly installment (1st mo.)</span><span class="val" id="r-monthly-installment">Rs. 0</span></div>
+          <div class="result-row total"><span class="lbl" id="lbl-minst">Monthly installment (1st mo.)</span><span class="val" id="r-monthly-installment">Rs. 0</span></div>
         </div>
 
         <div class="result-group" id="emi-group" style="display:none">
           <div class="result-row total"><span class="lbl">EMI (fixed monthly)</span><span class="val" id="r-emi">Rs. 0.00</span></div>
         </div>
 
-        <div class="result-group">
+        <div class="result-group" id="snap-a-end">
           <div class="result-row"><span class="lbl">Total disbursement</span><span class="val" id="r-disbursement">Rs. 0</span></div>
           <div class="result-row"><span class="lbl">Total interest</span><span class="val" id="r-total-interest">Rs. 0</span></div>
           <div class="result-row total"><span class="lbl">Total payment</span><span class="val" id="r-total-payment">Rs. 0</span></div>
         </div>
 
-        <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
-        <div class="schedule-wrap">
-          <table class="schedule">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Principal</th>
-                <th>Interest</th>
-                <th>Installment</th>
-                <th>Balance</th>
-              </tr>
-            </thead>
-            <tbody id="schedule-body"></tbody>
-            <tfoot id="schedule-foot"></tfoot>
-          </table>
-        </div>
-        <div class="loan-actions" style="margin-top:12px">
-          <button class="btn-clear" id="sched-print">🖨️ PRINT</button>
-          <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
+        <div class="schedule-section" id="schedule-section">
+          <div class="loan-actions" style="margin:0 0 10px">
+            <button class="btn-clear" id="sched-print">🖨️ PRINT</button>
+            <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
+          </div>
+          <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
+          <div class="schedule-wrap">
+            <table class="schedule">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Principal</th>
+                  <th>Interest</th>
+                  <th>Installment</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody id="schedule-body"></tbody>
+              <tfoot id="schedule-foot"></tfoot>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -814,6 +828,7 @@
       row.querySelector(".history-time").textContent = item.time;
       row.addEventListener("click", () => {
         expr = item.result;
+        caret = expr.length;
         render();
         showTab("calc");
       });
@@ -859,75 +874,93 @@
       fs -= 1;
       currEl.style.fontSize = fs + "px";
     }
-    currEl.scrollLeft = currEl.scrollWidth;
+    const c = currEl.querySelector(".caret");
+    if (c) {
+      const cr = c.getBoundingClientRect(), pr = currEl.getBoundingClientRect();
+      if (cr.right > pr.right) currEl.scrollLeft += cr.right - pr.right + 8;
+      else if (cr.left < pr.left) currEl.scrollLeft -= pr.left - cr.left + 8;
+    }
   }
 
+  let caret = 0;
+  const OPS = "+-\u2212\u00d7\u00f7^";
+  function ins(t) { expr = expr.slice(0, caret) + t + expr.slice(caret); caret += t.length; }
+  function resetIfError() { if (expr === "Error") { expr = ""; caret = 0; } }
+
   function render() {
-    currEl.textContent = expr === "" ? "0" : expr;
+    if (caret > expr.length) caret = expr.length;
+    if (caret < 0) caret = 0;
+    const cur = '<span class="caret"></span>';
+    if (expr === "") currEl.innerHTML = cur + "0";
+    else {
+      let h = "";
+      for (let i = 0; i < expr.length; i++) {
+        const c = expr[i] === "&" ? "&amp;" : expr[i] === "<" ? "&lt;" : expr[i];
+        h += (i === caret ? cur : "") + '<span class="ch">' + c + "</span>";
+      }
+      if (caret >= expr.length) h += cur;
+      currEl.innerHTML = h;
+    }
     const v = computeValue(expr);
     const resultStr = v === null ? null : formatResult(v);
-    previewEl.textContent = (expr && resultStr !== null && resultStr !== expr) ? resultStr : " ";
+    previewEl.textContent = (expr && resultStr !== null && resultStr !== expr) ? resultStr : " ";
     fitDisplay();
   }
 
-  function inputDigit(d) {
-    if (expr === "Error") expr = "";
-    expr += d;
-  }
+  function inputDigit(d) { resetIfError(); ins(d); }
 
   function inputDecimal() {
-    if (expr === "Error") expr = "";
-    const m = expr.match(/(\d+\.\d*|\.\d*|\d+)$/);
-    if (m && m[0].includes(".")) return;
-    expr += ".";
+    resetIfError();
+    const l = expr.slice(0, caret).match(/[\d.]*$/)[0];
+    const r = expr.slice(caret).match(/^[\d.]*/)[0];
+    if ((l + r).includes(".")) return;
+    ins(".");
   }
 
   function inputOperator(sym) {
-    if (expr === "Error") expr = "";
+    resetIfError();
     if (expr === "") {
-      if (sym === "−") expr = "-";
+      if (sym === "\u2212") { expr = "-"; caret = 1; }
       return;
     }
-    const last = expr[expr.length - 1];
-    if ("+-−×÷^".includes(last)) {
-      expr = expr.slice(0, -1) + sym;
-    } else {
-      expr += sym;
+    if (caret === 0) { if (sym === "\u2212") ins("-"); return; }
+    const last = expr[caret - 1];
+    if (OPS.includes(last)) {
+      expr = expr.slice(0, caret - 1) + sym + expr.slice(caret);
+      return;
     }
+    const next = expr[caret];
+    if (next && OPS.includes(next)) {
+      expr = expr.slice(0, caret) + sym + expr.slice(caret + 1);
+      caret++;
+    } else ins(sym);
   }
 
-  function appendToken(tok) {
-    if (expr === "Error") expr = "";
-    expr += tok;
-  }
-
-  function handlePrefixFn(name) {
-    if (expr === "Error") expr = "";
-    expr += name + "(";
-  }
+  function appendToken(tok) { resetIfError(); ins(tok); }
+  function handlePrefixFn(name) { resetIfError(); ins(name + "("); }
 
   function handlePostfix(sym) {
-    if (expr === "Error") expr = "";
-    const last = expr[expr.length - 1];
-    if (last && /[\d)]/.test(last)) expr += sym;
+    resetIfError();
+    const last = expr[caret - 1];
+    if (last && /[\d)]/.test(last)) ins(sym);
   }
 
   function handleParen() {
-    if (expr === "Error") expr = "";
-    const opens = (expr.match(/\(/g) || []).length;
-    const closes = (expr.match(/\)/g) || []).length;
-    const last = expr[expr.length - 1];
-    if (opens > closes && last && /[\d)]/.test(last)) expr += ")";
-    else expr += "(";
+    resetIfError();
+    const left = expr.slice(0, caret);
+    const opens = (left.match(/\(/g) || []).length;
+    const closes = (left.match(/\)/g) || []).length;
+    const last = left[left.length - 1];
+    if (opens > closes && last && /[\d)]/.test(last)) ins(")");
+    else ins("(");
   }
 
   function handleBackspace() {
-    expr = expr === "Error" ? "" : expr.slice(0, -1);
+    if (expr === "Error") { expr = ""; caret = 0; return; }
+    if (caret > 0) { expr = expr.slice(0, caret - 1) + expr.slice(caret); caret--; }
   }
 
-  function handleClear() {
-    expr = "";
-  }
+  function handleClear() { expr = ""; caret = 0; }
 
   function handleEquals() {
     if (expr === "" || expr === "Error") return;
@@ -939,7 +972,22 @@
     } else {
       expr = "Error";
     }
+    caret = expr.length;
   }
+
+  // tap the display to place the cursor, or use the arrow buttons
+  document.querySelector("#panel-calc .display").addEventListener("click", (e) => {
+    const chs = currEl.querySelectorAll(".ch");
+    let pos = chs.length;
+    for (let i = 0; i < chs.length; i++) {
+      const r = chs[i].getBoundingClientRect();
+      if (e.clientX < r.left + r.width / 2) { pos = i; break; }
+    }
+    caret = pos;
+    render();
+  });
+  document.getElementById("caret-left").addEventListener("click", () => { caret = Math.max(0, caret - 1); render(); });
+  document.getElementById("caret-right").addEventListener("click", () => { caret = Math.min(expr.length, caret + 1); render(); });
 
   function refreshInvLabels() {
     document.getElementById("btn-sin").textContent = invMode ? "sin\u207B\u00B9" : "sin";
@@ -1016,6 +1064,8 @@
     else if (e.key === "Enter" || e.key === "=") handleEquals();
     else if (e.key === "Escape") handleClear();
     else if (e.key === "Backspace") handleBackspace();
+    else if (e.key === "ArrowLeft") caret = Math.max(0, caret - 1);
+    else if (e.key === "ArrowRight") caret = Math.min(expr.length, caret + 1);
     else return;
     render();
   });
@@ -1053,6 +1103,12 @@
   const scheduleBody = document.getElementById("schedule-body");
   const scheduleFoot = document.getElementById("schedule-foot");
   const loanOutput = document.getElementById("loan-output");
+  function updateSnap() {
+    document.documentElement.classList.toggle("snap-loan", panelLoan.classList.contains("active") && loanOutput.classList.contains("show"));
+  }
+  new MutationObserver(updateSnap).observe(panelLoan, { attributes: true, attributeFilter: ["class"] });
+  new MutationObserver(updateSnap).observe(loanOutput, { attributes: true, attributeFilter: ["class"] });
+  updateSnap();
 
   const out = {
     totalAmount: document.getElementById("r-total-amount"),
@@ -1149,9 +1205,14 @@
       ? "PAYMENT SCHEDULE · EMI (fixed monthly installment)"
       : "PAYMENT SCHEDULE · interest declines monthly";
     window.dmSchedule = { rows: schedRows, P, rate: annualRate, months, emiOn, emi };
-    document.getElementById("std-group").style.display = emiOn ? "none" : "";
-    document.getElementById("emi-group").style.display = emiOn ? "" : "none";
+    document.getElementById("std-group").style.display = "";
+    document.getElementById("emi-group").style.display = "none";
+    document.getElementById("lbl-mp").textContent = emiOn ? "Monthly principal (1st mo.)" : "Monthly principal";
+    document.getElementById("lbl-minst").textContent = emiOn ? "EMI (fixed monthly)" : "Monthly installment (1st mo.)";
     if (emiOn) {
+      out.monthlyPrincipal.textContent = formatRs(schedRows[0].principalPortion);
+      out.monthlyInterest.textContent = formatRs2(schedRows[0].interestPortion);
+      out.monthlyInstallment.textContent = formatRs2(emi);
       const sumI = schedRows.reduce((a, r) => a + r.interestPortion, 0);
       out.totalInterest.textContent = formatRs2(sumI);
       out.totalPayment.textContent = formatRs2(P + sumI);
@@ -1354,6 +1415,7 @@
     const t = totals(d);
     const body = d.rows.map((r) => "<tr><td>" + r.m + "</td><td>" + n0(r.principalPortion) + "</td><td>" + n2(r.interestPortion) + "</td><td>" + n2(r.installment) + "</td><td>" + n0(r.balance) + "</td></tr>").join("");
     const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Repayment Schedule</title><style>body{font-family:Arial,sans-serif;margin:24px;color:#000}.hd{display:flex;justify-content:space-between;font-size:12px;border-bottom:2px solid #2a9d8f;padding-bottom:6px;margin-bottom:14px}h2{margin:0 0 4px}p{margin:0 0 14px;font-size:13px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:5px 8px;text-align:right}th:first-child,td:first-child{text-align:center}th{background:#e6e6e6}tfoot td{font-weight:bold;background:#f2f2f2}</style></head><body><div class="hd"><b>' + esc(APP_NAME) + '</b><span>Saved: ' + esc(stamp()) + '</span></div><h2>Repayment Schedule' + (d.emiOn ? " (EMI)" : "") + "</h2><p>" + esc(infoLine(d)) + "</p><table><thead><tr><th>#</th><th>Principal (Rs.)</th><th>Interest (Rs.)</th><th>Installment (Rs.)</th><th>Balance (Rs.)</th></tr></thead><tbody>" + body + "</tbody><tfoot><tr><td>Total</td><td>" + n0(t.p) + "</td><td>" + n2(t.i) + "</td><td>" + n2(t.m) + "</td><td>0</td></tr></tfoot></table></body></html>";
+    if (window.AndroidPrint && window.AndroidPrint.print) { try { window.AndroidPrint.print(html); return; } catch (e) {} }
     const f = document.createElement("iframe");
     f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
     document.body.appendChild(f);
@@ -1449,8 +1511,12 @@
 
   async function savePDF() {
     const d = getSched(); if (!d) return;
-    const name = "repayment-schedule" + (d.emiOn ? "-emi" : "") + ".pdf";
+    const D = new Date(), z = (n) => String(n).padStart(2, "0");
+    const name = "repayment-schedule" + (d.emiOn ? "-emi" : "") + "-" + D.getFullYear() + z(D.getMonth() + 1) + z(D.getDate()) + "-" + z(D.getHours()) + z(D.getMinutes()) + ".pdf";
     const u8 = makePDF(d), blob = new Blob([u8], { type: "application/pdf" });
+    if (window.AndroidPrint && window.AndroidPrint.savePdf) { // Android app: save straight into Downloads
+      try { const r = window.AndroidPrint.savePdf(b64(u8), name); if (r === "ok") { toast("PDF saved in Downloads: " + name); return; } } catch (e) {}
+    }
     try { // Android app (Capacitor Filesystem + Share plugins, when installed)
       const P = window.Capacitor && window.Capacitor.Plugins;
       if (P && P.Filesystem && P.Share) {
