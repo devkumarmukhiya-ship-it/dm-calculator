@@ -1663,10 +1663,10 @@
     const total = chunks.length;
     const streams = chunks.map((chunk, pi) => {
       const c = [];
-      pdfIcon(c, MX, H - 70, 32);
-      T(c, MX + 42, H - 52, APP_NAME, 15, true, DARK, "l");
-      T(c, W - MX, H - 52, "Saved: " + saved, 9.5, false, GREY, "r");
-      Ln(c, MX, H - 77, W - MX, H - 77, TEAL, 2);
+      pdfIcon(c, MX, H - 67, 32);
+      T(c, MX + 42, H - 62.5, APP_NAME, 15, true, DARK, "l");
+      T(c, W - MX, H - 62.5, "Saved: " + saved, 9.5, false, GREY, "r");
+      Ln(c, MX, H - 72, W - MX, H - 72, TEAL, 2);
       let ty = H - 100;
       if (pi === 0) {
         T(c, MX, H - 106, "Repayment Schedule" + (d.emiOn ? " (EMI)" : ""), 24, true, DARK, "l");
