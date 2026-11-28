@@ -483,7 +483,7 @@
   .schedule-section .schedule-wrap{flex:0 1 auto;min-height:0;max-height:none}
   /* the calculator card becomes its own scroll area, so the snap works in the app and in any preview */
   html.snap-loan, html.snap-loan body{height:100%;overflow:hidden}
-  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;scrollbar-width:none}
+  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none}
   html.snap-loan .calc::-webkit-scrollbar{display:none}
   html.snap-loan .topbar{scroll-snap-align:start;scroll-margin-top:12px}
   html.snap-loan #schedule-wrap-a{scroll-snap-align:end;scroll-margin-bottom:8px}
@@ -1171,6 +1171,34 @@
   new MutationObserver(updateSnap).observe(panelLoan, { attributes: true, attributeFilter: ["class"] });
   new MutationObserver(updateSnap).observe(loanOutput, { attributes: true, attributeFilter: ["class"] });
   updateSnap();
+
+  // two resting places: compact view (A) and full-screen schedule (B).
+  // After you let go, B opens only if you scrolled at least 35% of the way there; otherwise it goes back to A.
+  (function () {
+    const box = document.querySelector(".calc"), root = document.documentElement;
+    const THRESH = 0.35;
+    let timer = null, touching = false, state = "A";
+    function pos() {
+      const bt = box.getBoundingClientRect().top, st = box.scrollTop;
+      const wrapBottom = document.getElementById("schedule-wrap-a").getBoundingClientRect().bottom;
+      const secTop = document.getElementById("schedule-section").getBoundingClientRect().top;
+      return { a: Math.round(wrapBottom - bt + st + 8 - box.clientHeight), b: Math.round(secTop - bt + st) };
+    }
+    function settle() {
+      if (!root.classList.contains("snap-loan") || touching) return;
+      const p = pos(), y = box.scrollTop, span = p.b - p.a;
+      if (span < 40) return;
+      if (y <= p.a + 3) { state = "A"; return; }
+      if (y >= p.b - 3) { state = "B"; return; }
+      const target = state === "A" ? ((y - p.a) >= THRESH * span ? p.b : p.a) : ((p.b - y) >= THRESH * span ? p.a : p.b);
+      box.scrollTo({ top: target, behavior: "smooth" });
+    }
+    const later = () => { clearTimeout(timer); timer = setTimeout(settle, 110); };
+    box.addEventListener("scroll", later, { passive: true });
+    box.addEventListener("touchstart", () => { touching = true; clearTimeout(timer); }, { passive: true });
+    box.addEventListener("touchend", () => { touching = false; later(); }, { passive: true });
+    box.addEventListener("touchcancel", () => { touching = false; later(); }, { passive: true });
+  })();
 
   const out = {
     totalAmount: document.getElementById("r-total-amount"),
