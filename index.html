@@ -483,10 +483,8 @@
   .schedule-section .schedule-wrap{flex:1;min-height:0;max-height:none}
   /* the calculator card becomes its own scroll area, so the snap works in the app and in any preview */
   html.snap-loan, html.snap-loan body{height:100%;overflow:hidden}
-  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;scrollbar-width:none}
+  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scrollbar-width:none}
   html.snap-loan .calc::-webkit-scrollbar{display:none}
-  html.snap-loan .topbar{scroll-snap-align:start;scroll-margin-top:12px}
-  html.snap-loan #snap-a-end{scroll-snap-align:end;scroll-margin-bottom:12px}
   html.snap-loan .schedule-section{scroll-snap-align:start}
 </style>
 </head>
@@ -603,12 +601,33 @@
           <div class="result-row total"><span class="lbl">Total payment</span><span class="val" id="r-total-payment">Rs. 0</span></div>
         </div>
 
+        <div class="loan-actions" style="margin:12px 0 0">
+          <button class="btn-clear" id="sched-print">🖨️ PRINT</button>
+          <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
+        </div>
+        <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
+        <div class="schedule-wrap">
+          <table class="schedule">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Installment</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+            <tfoot id="schedule-foot"></tfoot>
+          </table>
+        </div>
+      
         <div class="schedule-section" id="schedule-section">
           <div class="loan-actions" style="margin:0 0 10px">
-            <button class="btn-clear" id="sched-print">🖨️ PRINT</button>
-            <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
+            <button class="btn-clear" id="sched-print2">🖨️ PRINT</button>
+            <button class="btn-calculate" id="sched-pdf2">⬇ SAVE PDF</button>
           </div>
-          <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
+          <div class="schedule-title" id="schedule-title2">PAYMENT SCHEDULE · interest declines monthly</div>
           <div class="schedule-wrap">
             <table class="schedule">
               <thead>
@@ -620,8 +639,8 @@
                   <th>Balance</th>
                 </tr>
               </thead>
-              <tbody id="schedule-body"></tbody>
-              <tfoot id="schedule-foot"></tfoot>
+              <tbody id="schedule-body2"></tbody>
+              <tfoot id="schedule-foot2"></tfoot>
             </table>
           </div>
         </div>
@@ -1280,6 +1299,9 @@
       `;
       scheduleFoot.appendChild(tr);
     }
+    document.getElementById("schedule-body2").innerHTML = scheduleBody.innerHTML;
+    document.getElementById("schedule-foot2").innerHTML = scheduleFoot.innerHTML;
+    document.getElementById("schedule-title2").textContent = document.getElementById("schedule-title").textContent;
   }
 
   function clearLoan() {
@@ -1561,6 +1583,8 @@
   }
   $("sched-print").addEventListener("click", printSchedule);
   $("sched-pdf").addEventListener("click", savePDF);
+  $("sched-print2").addEventListener("click", printSchedule);
+  $("sched-pdf2").addEventListener("click", savePDF);
 })();
 </script>
 </body>
