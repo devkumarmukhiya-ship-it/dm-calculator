@@ -1725,35 +1725,44 @@
 })();
 </script>
 <script>
-/* Android back button: close menu/dialog, leave Settings/Feedback/History/Loan back to the calculator; only exit from the calculator itself */
+/* Back button. In the Android app the native side asks this page (window.dmBack) because Capacitor alone does not use WebView history;
+   in a normal browser the History API is used instead. Settings/Feedback/About/Privacy/History/Loan go back to the calculator; only the calculator exits. */
 (function () {
   const $ = (id) => document.getElementById(id);
   const calcEl = document.querySelector(".calc"), menu = $("menu"), dlg = $("theme-dlg");
+  const native = !!(window.AndroidPrint && window.AndroidPrint.setCanGoBack);
   let guard = false, internal = false;
   function atRoot() {
     return $("panel-calc").classList.contains("active") && !calcEl.classList.contains("in-extra") &&
       !menu.classList.contains("open") && !dlg.classList.contains("open");
   }
-  function sync() {
-    const root = atRoot();
-    if (!root && !guard) { try { history.pushState({ dm: 1 }, ""); guard = true; } catch (e) {} }
-    else if (root && guard) { internal = true; guard = false; try { history.back(); } catch (e) { internal = false; } }
-  }
-  const mo = new MutationObserver(sync);
-  [calcEl, $("panel-calc"), $("panel-loan"), $("panel-history"), $("panel-settings"), $("panel-feedback"), $("panel-about"), $("panel-privacy"), menu, dlg]
-    .forEach((el) => { if (el) mo.observe(el, { attributes: true, attributeFilter: ["class"] }); });
-  window.addEventListener("popstate", () => {
-    if (internal) { internal = false; return; }
-    guard = false;
+  function goBackOneStep() {
     if (dlg.classList.contains("open")) dlg.classList.remove("open");
     else if (menu.classList.contains("open")) menu.classList.remove("open");
-    else if (calcEl.classList.contains("in-extra")) {                            // Settings/Feedback -> where it was opened from
+    else if (calcEl.classList.contains("in-extra")) {                            // Settings/Feedback/About/Privacy -> where it was opened from
       calcEl.classList.remove("in-extra");
       $("tab-" + (window.dmReturnTab || "calc")).click();
     }
     else if (!$("panel-calc").classList.contains("active")) $("tab-calc").click(); // Loan / History -> Calculator
+  }
+  function sync() {
+    const root = atRoot();
+    if (native) { try { window.AndroidPrint.setCanGoBack(!root); } catch (e) {} return; }
+    if (!root && !guard) { try { history.pushState({ dm: 1 }, ""); guard = true; } catch (e) {} }
+    else if (root && guard) { internal = true; guard = false; try { history.back(); } catch (e) { internal = false; } }
+  }
+  window.dmBack = function () { goBackOneStep(); sync(); return true; };
+  const mo = new MutationObserver(sync);
+  [calcEl, $("panel-calc"), $("panel-loan"), $("panel-history"), $("panel-settings"), $("panel-feedback"), $("panel-about"), $("panel-privacy"), menu, dlg]
+    .forEach((el) => { if (el) mo.observe(el, { attributes: true, attributeFilter: ["class"] }); });
+  window.addEventListener("popstate", () => {
+    if (native) return;
+    if (internal) { internal = false; return; }
+    guard = false;
+    goBackOneStep();
     sync();
   });
+  sync();
 })();
 </script>
 </body>

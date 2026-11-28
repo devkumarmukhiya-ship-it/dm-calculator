@@ -23,6 +23,23 @@ import java.io.OutputStream;
 public class MainActivity extends BridgeActivity {
 
   private WebView printView;
+  private volatile boolean jsCanGoBack = false;
+
+  // Back button: if the page is on Settings / History / Loan etc. let the page go back one step; otherwise exit as usual.
+  @Override
+  @SuppressWarnings("deprecation")
+  public void onBackPressed() {
+    if (jsCanGoBack) {
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          getBridge().getWebView().evaluateJavascript("window.dmBack && window.dmBack()", null);
+        }
+      });
+    } else {
+      super.onBackPressed();
+    }
+  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -31,6 +48,11 @@ public class MainActivity extends BridgeActivity {
   }
 
   private class NativeHelper {
+
+    @JavascriptInterface
+    public void setCanGoBack(boolean value) {
+      jsCanGoBack = value;
+    }
 
     // Opens the Android print dialog (printer or "Save as PDF") for the given HTML.
     @JavascriptInterface
