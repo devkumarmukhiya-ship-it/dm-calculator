@@ -495,6 +495,18 @@
   table.schedule thead th:nth-child(3){width:20%}
   table.schedule thead th:nth-child(4){width:23%}
   table.schedule thead th:nth-child(5){width:21%}
+  .doc{padding:2px 6px 24px;line-height:1.55;color:var(--text-primary)}
+  .doc-title{margin:6px 0 2px;font-size:22px;font-weight:600}
+  .doc-sub{margin:0 0 14px;color:var(--text-secondary);font-size:14px}
+  .doc h3{margin:20px 0 6px;font-size:15px;font-weight:600;color:var(--accent)}
+  .doc p{margin:0 0 8px;font-size:14.5px}
+  .doc ul{margin:0 0 8px;padding-left:20px;font-size:14.5px}
+  .doc li{margin-bottom:4px}
+  .doc-note{margin-top:18px !important;color:var(--text-secondary);font-size:13px !important}
+  .about-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:14.5px}
+  .about-row span{color:var(--text-secondary);flex:none}
+  .about-row b{font-weight:600;text-align:right;word-break:break-word}
+  .doc a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -508,6 +520,8 @@
         <button id="theme-toggle" aria-label="Choose theme"><span>🎨</span>Choose theme</button>
         <button id="menu-settings"><span>⚙️</span>Settings</button>
         <button id="menu-feedback"><span>💬</span>Send feedback</button>
+        <button id="menu-about"><span>ℹ️</span>About</button>
+        <button id="menu-privacy"><span>🔒</span>Privacy policy</button>
       </div>
     </div>
 
@@ -681,6 +695,52 @@
         <button class="btn-clear" id="rate-reset">RESET</button>
       </div>
       <div class="history-hint" id="rate-note"></div>
+    </div>
+
+    <div id="panel-about" class="panel extra">
+      <div class="doc">
+        <h2 class="doc-title">Devkumar Mukhiya Calculator</h2>
+        <p class="doc-sub">Calculator, scientific keys and a loan / EMI repayment schedule.</p>
+        <div class="about-row"><span>Version</span><b id="about-version">__APP_VERSION__</b></div>
+        <div class="about-row"><span>Last updated</span><b id="about-build">__BUILD_TIME__</b></div>
+        <div class="about-row"><span>App name</span><b>Devkumar Mukhiya Calculator</b></div>
+        <div class="about-row"><span>Package name</span><b>com.devkumar.calculator</b></div>
+        <div class="about-row"><span>Developed by</span><b>Devkumar Mukhiya</b></div>
+        <div class="about-row"><span>Contact</span><b id="about-mail"></b></div>
+        <h3>What it does</h3>
+        <ul>
+          <li>Everyday and scientific calculator with history and cursor editing</li>
+          <li>Loan calculator with service and insurance charges</li>
+          <li>Repayment schedule (equal principal or EMI), save as PDF or print</li>
+          <li>Light, dark and system themes</li>
+        </ul>
+        <p class="doc-note">To update, install the newer APK over this one. Your history and settings are kept.</p>
+      </div>
+    </div>
+
+    <div id="panel-privacy" class="panel extra">
+      <div class="doc">
+        <h2 class="doc-title">Privacy Policy</h2>
+        <p class="doc-sub">Last updated: 28 November 2026</p>
+        <h3>In short</h3>
+        <p>Devkumar Mukhiya Calculator does not collect, sell or share your personal information. Everything you enter stays on your phone.</p>
+        <h3>Data stored on your device</h3>
+        <p>Your calculation history, the interest, service charge and insurance settings, and your theme choice are saved only on your device. Use "Clear history" or uninstall the app to remove them.</p>
+        <h3>No accounts, ads or tracking</h3>
+        <p>The app has no sign-in, no advertising, no analytics and no trackers. The calculator and the loan schedule work fully offline, and your calculations are never sent anywhere.</p>
+        <h3>Feedback</h3>
+        <p>"Send feedback" opens your own email app with the message you wrote. It is sent only if you press send there.</p>
+        <h3>Files and printing</h3>
+        <p>"Save PDF" stores the schedule in your phone's Downloads folder, and "Print" uses Android's print service. This happens only when you tap those buttons.</p>
+        <h3>Permissions</h3>
+        <p>The app does not access your contacts, camera, microphone, location or photos.</p>
+        <h3>Children</h3>
+        <p>The app collects no personal information from anyone, including children.</p>
+        <h3>Changes</h3>
+        <p>If this policy changes, the new version will appear here with a new date.</p>
+        <h3>Contact</h3>
+        <p id="privacy-mail"></p>
+      </div>
     </div>
 
     <div id="panel-feedback" class="panel extra">
@@ -1450,6 +1510,16 @@
   }
   document.getElementById("menu-settings").addEventListener("click", () => showExtra("panel-settings", "Settings"));
   document.getElementById("menu-feedback").addEventListener("click", () => showExtra("panel-feedback", "Send feedback"));
+  document.getElementById("menu-about").addEventListener("click", () => showExtra("panel-about", "About"));
+  document.getElementById("menu-privacy").addEventListener("click", () => showExtra("panel-privacy", "Privacy policy"));
+  (function () {
+    const v = document.getElementById("about-version"), b = document.getElementById("about-build");
+    if (/^__/.test(v.textContent.trim())) v.textContent = "Development build";
+    if (/^__/.test(b.textContent.trim())) b.textContent = "Not available (development build)";
+    const link = '<a href="mailto:' + FEEDBACK_EMAIL + '">' + FEEDBACK_EMAIL + '</a>';
+    document.getElementById("about-mail").innerHTML = link;
+    document.getElementById("privacy-mail").innerHTML = "Questions about this policy? Write to " + link + ".";
+  })();
   document.getElementById("fb-send").addEventListener("click", () => {
     const t = document.getElementById("fb-text").value.trim();
     if (!t) return;
@@ -1670,7 +1740,7 @@
     else if (root && guard) { internal = true; guard = false; try { history.back(); } catch (e) { internal = false; } }
   }
   const mo = new MutationObserver(sync);
-  [calcEl, $("panel-calc"), $("panel-loan"), $("panel-history"), $("panel-settings"), $("panel-feedback"), menu, dlg]
+  [calcEl, $("panel-calc"), $("panel-loan"), $("panel-history"), $("panel-settings"), $("panel-feedback"), $("panel-about"), $("panel-privacy"), menu, dlg]
     .forEach((el) => { if (el) mo.observe(el, { attributes: true, attributeFilter: ["class"] }); });
   window.addEventListener("popstate", () => {
     if (internal) { internal = false; return; }
