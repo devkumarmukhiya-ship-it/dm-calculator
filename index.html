@@ -480,11 +480,13 @@
   /* schedule = its own full-screen page: scroll up -> top options hide, scroll down -> back */
   .schedule-section{height:100vh;height:100dvh;min-height:0;flex:none;box-sizing:border-box;display:flex;flex-direction:column;padding:14px 0 12px}
   .schedule-section .schedule-title{margin:2px 6px 8px}
-  .schedule-section .schedule-wrap{flex:1;min-height:0;max-height:none}
+  .schedule-section .schedule-wrap{flex:0 1 auto;min-height:0;max-height:none}
   /* the calculator card becomes its own scroll area, so the snap works in the app and in any preview */
   html.snap-loan, html.snap-loan body{height:100%;overflow:hidden}
-  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scrollbar-width:none}
+  html.snap-loan .calc{box-sizing:border-box;height:100vh;height:100dvh;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;scrollbar-width:none}
   html.snap-loan .calc::-webkit-scrollbar{display:none}
+  html.snap-loan .topbar{scroll-snap-align:start;scroll-margin-top:12px}
+  html.snap-loan #schedule-wrap-a{scroll-snap-align:end;scroll-margin-bottom:8px}
   html.snap-loan .schedule-section{scroll-snap-align:start}
 </style>
 </head>
@@ -606,7 +608,7 @@
           <button class="btn-calculate" id="sched-pdf">⬇ SAVE PDF</button>
         </div>
         <div class="schedule-title" id="schedule-title">PAYMENT SCHEDULE · interest declines monthly</div>
-        <div class="schedule-wrap">
+        <div class="schedule-wrap" id="schedule-wrap-a">
           <table class="schedule">
             <thead>
               <tr>
@@ -622,6 +624,7 @@
           </table>
         </div>
       
+        <div id="a-spacer"></div>
         <div class="schedule-section" id="schedule-section">
           <div class="loan-actions" style="margin:0 0 10px">
             <button class="btn-clear" id="sched-print2">🖨️ PRINT</button>
@@ -1146,9 +1149,18 @@
   const scheduleBody = document.getElementById("schedule-body");
   const scheduleFoot = document.getElementById("schedule-foot");
   const loanOutput = document.getElementById("loan-output");
+  function fixSpacer() {
+    const sp = document.getElementById("a-spacer"), sec = document.getElementById("schedule-section"), box = document.querySelector(".calc");
+    sp.style.height = "0px";
+    if (!sec.offsetParent || !document.documentElement.classList.contains("snap-loan")) return;
+    const top = sec.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+    if (top < box.clientHeight) sp.style.height = Math.ceil(box.clientHeight - top) + "px";
+  }
   function updateSnap() {
     document.documentElement.classList.toggle("snap-loan", panelLoan.classList.contains("active") && loanOutput.classList.contains("show"));
+    requestAnimationFrame(fixSpacer);
   }
+  window.addEventListener("resize", () => requestAnimationFrame(fixSpacer));
   new MutationObserver(updateSnap).observe(panelLoan, { attributes: true, attributeFilter: ["class"] });
   new MutationObserver(updateSnap).observe(loanOutput, { attributes: true, attributeFilter: ["class"] });
   updateSnap();
@@ -1262,6 +1274,7 @@
     }
     buildSchedule(schedRows, emiOn);
     loanOutput.classList.add("show");
+    setTimeout(fixSpacer, 60);
   }
 
   function buildSchedule(rows, emiOn) {
