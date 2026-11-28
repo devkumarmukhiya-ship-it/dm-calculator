@@ -1173,32 +1173,48 @@
   new MutationObserver(updateSnap).observe(loanOutput, { attributes: true, attributeFilter: ["class"] });
   updateSnap();
 
-  // two resting places: compact view (A) and full-screen schedule (B).
-  // After you let go, B opens only if you scrolled at least 35% of the way there; otherwise it goes back to A.
+  // Two stops: (A) compact view where the table can be swiped, (B) full-screen schedule.
+  // From above, the page scroll LOCKS at A. Only a new swipe that starts at A and goes 40%+ of the way opens B.
   (function () {
     const box = document.querySelector(".calc"), root = document.documentElement;
-    const THRESH = 0.35;
-    let timer = null, touching = false, state = "A";
+    const THRESH = 0.40;
+    let timer = null, touching = false, state = "A", allowForward = false, clamping = false;
     function pos() {
       const bt = box.getBoundingClientRect().top, st = box.scrollTop;
       const wrapBottom = document.getElementById("schedule-wrap-a").getBoundingClientRect().bottom;
       const secTop = document.getElementById("schedule-section").getBoundingClientRect().top;
       return { a: Math.round(wrapBottom - bt + st + 8 - box.clientHeight), b: Math.round(secTop - bt + st) };
     }
+    function on() { return root.classList.contains("snap-loan"); }
     function settle() {
-      if (!root.classList.contains("snap-loan") || touching) return;
+      if (!on() || touching) return;
       const p = pos(), y = box.scrollTop, span = p.b - p.a;
       if (span < 40) return;
-      if (y <= p.a + 3) { state = "A"; return; }
-      if (y >= p.b - 3) { state = "B"; return; }
+      if (y <= p.a + 3) { state = "A"; allowForward = false; return; }
+      if (y >= p.b - 3) { state = "B"; allowForward = false; return; }
       const target = state === "A" ? ((y - p.a) >= THRESH * span ? p.b : p.a) : ((p.b - y) >= THRESH * span ? p.a : p.b);
       box.scrollTo({ top: target, behavior: "smooth" });
     }
-    const later = () => { clearTimeout(timer); timer = setTimeout(settle, 110); };
-    box.addEventListener("scroll", later, { passive: true });
-    box.addEventListener("touchstart", () => { touching = true; clearTimeout(timer); }, { passive: true });
-    box.addEventListener("touchend", () => { touching = false; later(); }, { passive: true });
-    box.addEventListener("touchcancel", () => { touching = false; later(); }, { passive: true });
+    function onScroll() {
+      if (on() && !clamping) {
+        const p = pos(), y = box.scrollTop;
+        if (p.b - p.a >= 40) {
+          let lock = null;
+          if (state === "A" && !allowForward && y > p.a) lock = p.a;   // first swipe stops at the compact view
+          else if (state === "B" && y < p.a) lock = p.a;               // coming back stops at the compact view
+          if (lock !== null) { clamping = true; box.scrollTop = lock; clamping = false; }
+        }
+      }
+      clearTimeout(timer); timer = setTimeout(settle, 110);
+    }
+    box.addEventListener("scroll", onScroll, { passive: true });
+    box.addEventListener("touchstart", () => {
+      touching = true; clearTimeout(timer);
+      if (on()) { const p = pos(); allowForward = state === "A" && Math.abs(box.scrollTop - p.a) <= 3; }
+    }, { passive: true });
+    const end = () => { touching = false; clearTimeout(timer); timer = setTimeout(settle, 110); };
+    box.addEventListener("touchend", end, { passive: true });
+    box.addEventListener("touchcancel", end, { passive: true });
   })();
 
   const out = {
