@@ -46,6 +46,7 @@ jobs:
           cp debug.keystore ~/.android/debug.keystore
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
           sed -i "s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+          cat native/signing.gradle >> android/app/build.gradle
           grep -n "versionCode\|versionName" android/app/build.gradle
 
       - name: Build debug APK
@@ -56,6 +57,9 @@ jobs:
 
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk DevkumarMukhiyaCalculator.apk
+
+      - name: Show signing fingerprint (must be 1D:E6:B1:70... every build)
+        run: keytool -printcert -jarfile DevkumarMukhiyaCalculator.apk | grep SHA256
 
       - uses: actions/upload-artifact@v4
         with:
