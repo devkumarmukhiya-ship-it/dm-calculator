@@ -1432,7 +1432,7 @@
     if (calcEl.classList.contains("in-extra")) {
       e.stopImmediatePropagation();
       calcEl.classList.remove("in-extra");
-      document.getElementById("tab-" + (window.dmReturnTab || "calc")).click();
+      setTimeout(() => document.getElementById("tab-" + (window.dmReturnTab || "calc")).click(), 0);
     }
   }, true);
   const FEEDBACK_EMAIL = "devkumarmukhiya06@gmail.com"; // put the email address that should receive feedback
@@ -1652,6 +1652,38 @@
   $("sched-pdf").addEventListener("click", savePDF);
   $("sched-print2").addEventListener("click", printSchedule);
   $("sched-pdf2").addEventListener("click", savePDF);
+})();
+</script>
+<script>
+/* Android back button: close menu/dialog, leave Settings/Feedback/History/Loan back to the calculator; only exit from the calculator itself */
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const calcEl = document.querySelector(".calc"), menu = $("menu"), dlg = $("theme-dlg");
+  let guard = false, internal = false;
+  function atRoot() {
+    return $("panel-calc").classList.contains("active") && !calcEl.classList.contains("in-extra") &&
+      !menu.classList.contains("open") && !dlg.classList.contains("open");
+  }
+  function sync() {
+    const root = atRoot();
+    if (!root && !guard) { try { history.pushState({ dm: 1 }, ""); guard = true; } catch (e) {} }
+    else if (root && guard) { internal = true; guard = false; try { history.back(); } catch (e) { internal = false; } }
+  }
+  const mo = new MutationObserver(sync);
+  [calcEl, $("panel-calc"), $("panel-loan"), $("panel-history"), $("panel-settings"), $("panel-feedback"), menu, dlg]
+    .forEach((el) => { if (el) mo.observe(el, { attributes: true, attributeFilter: ["class"] }); });
+  window.addEventListener("popstate", () => {
+    if (internal) { internal = false; return; }
+    guard = false;
+    if (dlg.classList.contains("open")) dlg.classList.remove("open");
+    else if (menu.classList.contains("open")) menu.classList.remove("open");
+    else if (calcEl.classList.contains("in-extra")) {                            // Settings/Feedback -> where it was opened from
+      calcEl.classList.remove("in-extra");
+      $("tab-" + (window.dmReturnTab || "calc")).click();
+    }
+    else if (!$("panel-calc").classList.contains("active")) $("tab-calc").click(); // Loan / History -> Calculator
+    sync();
+  });
 })();
 </script>
 </body>
